@@ -58,7 +58,7 @@ class JS {
         })
       );
     } else {
-      throw new JSError("Unexpected selector given, expects {String|NodeList|Element|Array{String|Element}}!", "constructor");
+      throw new JSError("unexpected selector given, expects {String|NodeList|Element|Array{String|Element}}!", "constructor");
     }
   }
 
@@ -66,4 +66,30 @@ class JS {
   static from(selectors) {
     return new JS(selectors);
   }
+
+  length() {
+    return this.#nodes.length;
+  }
+
+  first() {
+    return [this.#nodes[0]];
+  }
+
+  last() {
+    return [this.#nodes.at(-1)];
+  }
+
+  pick(index) {
+    if (isNaN(index)) throw new JSError(`pick() method expects an index number, ${typeof index} given!`, "pick() method");
+
+    if (index >= 0 && index < this.#nodes.length) {
+      return [this.#nodes[index]];
+    } else if (index < 0 && -index <= this.#nodes.length) {
+      return [this.#nodes[this.#nodes.length + index]];
+    } else {
+      throw new JSError("the index you passed is out or range", "pick() method");
+    }
+  }
 }
+
+Object.seal(JS.prototype);

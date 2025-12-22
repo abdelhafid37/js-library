@@ -7,7 +7,7 @@ function doman(selectors) {
   return new JS(selectors);
 }
 
-const _ = doman; //? shorthand
+const _ = doman; //? alias
 
 class JSError extends Error {
   constructor(message, location) {
@@ -60,5 +60,10 @@ class JS {
     } else {
       throw new JSError("Unexpected selector given, expects {String|NodeList|Element|Array{String|Element}}!", "constructor");
     }
+  }
+
+  // static factory
+  static from(selectors) {
+    return new JS(selectors);
   }
 }

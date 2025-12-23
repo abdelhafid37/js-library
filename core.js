@@ -9,6 +9,7 @@ function doman(selectors) {
 
 const _ = doman; //? alias
 
+// custom error class with location to spot the error
 class JSError extends Error {
   constructor(message, location) {
     super(message);
@@ -23,6 +24,7 @@ class JSError extends Error {
  * @returns {<newWrapper>|<valueOfSomeKind>}
  */
 class JS {
+  // private nodes array
   #nodes = [];
 
   constructor(selectors) {
@@ -30,7 +32,11 @@ class JS {
   }
 
   // helper methods
-  #dedupe = nodes => [...new Set(nodes)];
+  #dedupe(nodes) {
+    return [...new Set(nodes)];
+  }
+
+  // document binding to the querySelector (this)
   #grab = document.querySelectorAll.bind(document);
 
   // selectors resolver
@@ -67,20 +73,24 @@ class JS {
     return new JS(selectors);
   }
 
+  // get nodes array length
   length() {
     return this.#nodes.length;
   }
 
+  // get first node in nodes array
   first() {
     return [this.#nodes[0]];
   }
 
+  // get last node in nodes array
   last() {
     return [this.#nodes.at(-1)];
   }
 
+  // get specific node in nodes array by index
   pick(index) {
-    if (isNaN(index)) throw new JSError(`pick() method expects an index number, ${typeof index} given!`, "pick() method");
+    if (isNaN(index)) throw new JSError(`pick() method expects an index number, ${typeof index} given!`, "pick()");
 
     if (index >= 0 && index < this.#nodes.length) {
       return [this.#nodes[index]];
@@ -90,6 +100,40 @@ class JS {
       throw new JSError("the index you passed is out or range", "pick() method");
     }
   }
+
+  // loop over every node in the nodes array
+  each(func) {
+    if (typeof func !== "function") throw new JSError(`each() method expects a function, ${typeof func} given!`, "each()");
+    return this.#nodes.forEach(node => func(node));
+  }
+
+  // get the parent node of every node in the nodes array
+  parent() {
+    return this.#dedupe(this.#nodes.map(node => node.parentElement));
+  }
+
+  // get all children of each node in the nodes array
+  children() {
+    return this.#dedupe(this.#nodes.flatMap(node => node.children));
+  }
+
+  // set or get html value of each node of the nodes array
+  html(value) {
+    if (typeof value === "undefined") {
+      return this.#nodes.map(node => node.innerHTML);
+    } else {
+      if (typeof value === "string") {
+        this.each(node => (node.innerHTML = value));
+      } else if (value instanceof Element) {
+        this.each(node => node.appendChild(value));
+      } else {
+        throw new JSError(`the html value you're trying to pass is invalid, expects {string|Element}, ${typeof value} given`, "html() method");
+      }
+
+      return this.#nodes;
+    }
+  }
 }
 
+// seal the class prototype object to prevent changing the class content
 Object.seal(JS.prototype);

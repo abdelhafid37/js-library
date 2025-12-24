@@ -46,10 +46,11 @@ class JS {
     }
 
     if (typeof selectors === "string") {
+      if (selectors.length === 0) throw new JSError("string selectors shouldn't be empty", "constructor");
       this.#nodes = [...this.#grab(selectors)];
     } else if (selectors instanceof NodeList) {
       this.#nodes = [...selectors];
-    } else if (selectors instanceof Element) {
+    } else if (selectors instanceof Element || selectors instanceof Document) {
       this.#nodes = [selectors];
     } else if (selectors instanceof Array) {
       this.#nodes = this.#dedupe(
@@ -59,7 +60,7 @@ class JS {
           } else if (selector instanceof Element) {
             return [selector];
           } else {
-            throw new JSError("Array of selectors contains unexpected items!", "constructor");
+            throw new JSError("unexpected items passed in the array!", "constructor");
           }
         })
       );
@@ -89,15 +90,15 @@ class JS {
   }
 
   // get specific node in nodes array by index
-  pick(index) {
-    if (isNaN(index)) throw new JSError(`pick() method expects an index number, ${typeof index} given!`, "pick()");
+  at(index) {
+    if (isNaN(index)) throw new JSError(`at() method expects an index number, ${typeof index} given!`, "at()");
 
     if (index >= 0 && index < this.#nodes.length) {
       return [this.#nodes[index]];
     } else if (index < 0 && -index <= this.#nodes.length) {
       return [this.#nodes[this.#nodes.length + index]];
     } else {
-      throw new JSError("the index you passed is out or range", "pick() method");
+      throw new JSError("the index you passed is out or range", "at() method");
     }
   }
 
@@ -114,7 +115,7 @@ class JS {
 
   // get all children of each node in the nodes array
   children() {
-    return this.#dedupe(this.#nodes.flatMap(node => node.children));
+    return this.#dedupe(this.#nodes.flatMap(node => [...node.children]));
   }
 
   // set or get html value of each node of the nodes array
